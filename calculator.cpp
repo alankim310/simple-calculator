@@ -33,6 +33,7 @@
  * 		"-" Primary
  * 		"+" Primary
  * 		Sqrt
+ * 		Pow(x,i) -> Multiply x with itself i times
  * 
  * Number:
  * 		floating-point literal
@@ -82,6 +83,9 @@ const char name = 'a';
 //square root identifier. 
 const char square_root = 'S';
 
+//pow function identifier
+const char pow_function = 'P';
+
 Token Token_stream::get()
 {   //if full, get the value in the buffer and turn it false. 
 
@@ -103,6 +107,7 @@ Token Token_stream::get()
 	case '%':
 	case ';':
 	case '=':
+	case ',':
 		return Token(ch);
 
         //case of number:
@@ -152,6 +157,9 @@ Token Token_stream::get()
 
 			//square root. input of sqrt will make square root token. 
 			if (s == "sqrt") return Token(square_root);
+
+			//pow function
+			if (s == "pow") return Token(pow_function);
 
 			return Token(name, s);
 		}
@@ -242,6 +250,35 @@ double primary()
 	Token t = ts.get();
 	switch (t.kind) {
 	
+	//case for pow function
+	case pow_function: {
+		t = ts.get();
+		if (t.kind != '(') error("Opening bracket is required");
+
+		//first input
+		double d = primary();
+
+		//result will be stored in this variable
+		double result = 1;
+
+		//expect a comma after a number
+		t = ts.get();
+		if (t.kind != ',') error("Comma is missing");
+
+		//truncate down the second input as an integer
+		int i = primary();
+
+		for (size_t n = 0; n < i; n++) {
+			result *= d;
+		}
+
+		t = ts.get();
+
+		//if no closing bracket, error
+		if(t.kind != ')') error("Closing bracket is missing!");
+		return result;
+	}
+
 	//case for square root
 	case square_root: {
 		double d = primary();
