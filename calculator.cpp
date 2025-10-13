@@ -14,7 +14,7 @@
  * 		";"
  * 
  * Quit: 
- * 		"q"
+ * 		"Q"
  * 
  * Expression:
  * 		Term
@@ -85,6 +85,9 @@ Token Token_stream::get()
 	char ch;
 	cin >> ch;
 	switch (ch) {
+	//case for quit
+	case 'q':
+		return Token(quit);
 
         //operation / syntax are read through get method
 	case '(':
@@ -146,6 +149,7 @@ Token Token_stream::get()
 		}
 		error("Bad token");
 	}
+	
 }
 
 /**
@@ -196,7 +200,7 @@ double get_value(string s)
 //setting a new value to a key s. 
 void set_value(string s, double d)
 {
-	for (int i = 0; i <= names.size(); ++i)
+	for (int i = 0; i < names.size(); ++i)
 		if (names[i].name == s) {
 			names[i].value = d;
 			return;
