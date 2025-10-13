@@ -26,6 +26,7 @@
  * 		Term "*" Primary
  * 		Term "/" Primary
  * 		Term "%" Primary
+ * 		Sqrt
  * 
  * Primary:
  * 		Number
@@ -77,6 +78,9 @@ const char quit = 'Q';
 const char print = ';';
 const char number = '8';
 const char name = 'a';
+
+//square root identifier. 
+const char square_root = 'S';
 
 Token Token_stream::get()
 {   //if full, get the value in the buffer and turn it false. 
@@ -145,6 +149,10 @@ Token Token_stream::get()
 
 			if (s == "let") return Token(let);
 			if (s == "quit") return Token(name);
+
+			//square root. input of sqrt will make square root token. 
+			if (s == "sqrt") return Token(square_root);
+
 			return Token(name, s);
 		}
 		error("Bad token");
@@ -233,10 +241,15 @@ double primary()
 {
 	Token t = ts.get();
 	switch (t.kind) {
-		
+	
+	//case for square root
+	case square_root: {
+		double d = sqrt(primary());
+		return d;
+	}
 	//return expression inside of bracket
-	case '(':
-		{	double d = expression();
+	case '(':{
+		double d = expression();
 		t = ts.get();
 		if (t.kind != ')') error("'(' expected");
 		return d;
@@ -244,6 +257,9 @@ double primary()
 
 	case '-':
 		return -primary(); //negate number
+
+	case '+':
+		return abs(primary()); //always positive number;
 
 	//actual number parsing happens in the Token_stream::get()
 	case number:
@@ -276,7 +292,8 @@ double term()
 		Token t = ts.get();
 		switch (t.kind) {
 
-			//in case of * and /, it gets another primary and performs the operation
+
+		//in case of * and /, it gets another primary and performs the operation
 		case '*':
 			left *= primary();
 			break;
