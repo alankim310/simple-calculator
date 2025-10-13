@@ -26,13 +26,13 @@
  * 		Term "*" Primary
  * 		Term "/" Primary
  * 		Term "%" Primary
- * 		Sqrt
  * 
  * Primary:
  * 		Number
  * 		"(" Expression ")"
  * 		"-" Primary
  * 		"+" Primary
+ * 		Sqrt
  * 
  * Number:
  * 		floating-point literal
@@ -244,7 +244,13 @@ double primary()
 	
 	//case for square root
 	case square_root: {
-		double d = sqrt(primary());
+		double d = primary();
+		
+		//negative case
+		if (d < 0)
+			error("Radicand can't be negative!");
+
+		d = sqrt(d);
 		return d;
 	}
 	//return expression inside of bracket
