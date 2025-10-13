@@ -392,6 +392,11 @@ void calculate()
 int main()
 
 try {
+
+	//predefined name k meaning 1000
+	Variable k("k", 1000);
+	names.push_back(k);
+
 	calculate();
 	return 0;
 }
