@@ -10,6 +10,9 @@ struct Token {
     //constructors using ch and val -- name not included
 	Token(char ch) :kind(ch), value(0) { }
 	Token(char ch, double val) :kind(ch), value(val) { }
+
+	//Token case for variable declaration
+	Token(char ch, string var) :kind(ch), name(var) { }
 };
 
 class Token_stream {
@@ -23,6 +26,8 @@ public:
 	Token_stream() :full(0), buffer(0) { }
 
 	Token get();    //getting next token
+
+	//retrieve a character back to buffer. 
 	void unget(Token t) { buffer = t; full = true; }
 
 	void ignore(char);
@@ -66,17 +71,36 @@ Token Token_stream::get()
 	case '7':
 	case '8':
 	case '9':
-	{	cin.unget();
+	//case for numbers
+
+	{	/*don't just get a single token but take the whole numbers 
+        through switching to val as an input variable. 
+        */
+       cin.unget();
 	double val;
 	cin >> val;
 	return Token(number, val);
+    break;
 	}
+
+
 	default:
+	//case for variables!
+
+        //if ch is an alphabet
 		if (isalpha(ch)) {
 			string s;
 			s += ch;
-			while (cin.get(ch) && (isalpha(ch) || isdigit(ch))) s = ch;
+
+            //check until there is a white space
+
+			//fix: Don't assign ch to s. 
+			//Instead, add onto preexisting characters.
+			while (cin.get(ch) && (isalpha(ch) || isdigit(ch))) s += ch; 
+			
+			//any nonvalid character (white space) gets retrieved. 
 			cin.unget();
+
 			if (s == "let") return Token(let);
 			if (s == "quit") return Token(name);
 			return Token(name, s);
@@ -85,6 +109,9 @@ Token Token_stream::get()
 	}
 }
 
+/**
+ * Ignore method takes a char as an argument 
+ */
 void Token_stream::ignore(char c)
 {
 	if (full && c == buffer.kind) {
@@ -93,7 +120,7 @@ void Token_stream::ignore(char c)
 	}
 	full = false;
 
-	char ch;
+	char ch; //hasn't been initiated. Has to come back later
 	while (cin >> ch)
 		if (ch == c) return;
 }
