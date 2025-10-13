@@ -1,6 +1,45 @@
-
 #include "std_lib_facilities.h"
 
+/**
+ * This program implements a basic expression calculator. 
+ * Input from cin; output to cout. 
+ * The grammar for input is:
+ * 
+ * Statement:
+ * 		Expression
+ * 		Print
+ * 		Quit
+ * 
+ * Print: 
+ * 		";"
+ * 
+ * Quit: 
+ * 		"q"
+ * 
+ * Expression:
+ * 		Term
+ * 		Expression "+" Term
+ * 		Expression "-" Term
+ * 
+ * Term:
+ * 		Primary
+ * 		Term "*" Primary
+ * 		Term "/" Primary
+ * 		Term "%" Primary
+ * 
+ * Primary:
+ * 		Number
+ * 		"(" Expression ")"
+ * 		"-" Primary
+ * 		"+" Primary
+ * 
+ * Number:
+ * 		floating-point literal
+ * 
+ * Input comes through cin through the Token_stream called ts. 
+ */
+
+ //q does not work to quit now. 
 struct Token {
     //attributes: kind, value, name
 	char kind;
@@ -110,29 +149,43 @@ Token Token_stream::get()
 }
 
 /**
- * Ignore method takes a char as an argument 
+ * 
+ * If the token buffer is full and the buffered token kind equals the requested char c,
+ * it just clears the buffer and returns. 
+ * 
+ * Otherwise, It clears full and then reads characters from standard input,
+ * discarding them until it reads a character equal to c, then returns. 
  */
 void Token_stream::ignore(char c)
 {
+
 	if (full && c == buffer.kind) {
 		full = false;
 		return;
 	}
 	full = false;
 
-	char ch; //hasn't been initiated. Has to come back later
+	char ch; //hasn't been initialized. Has to come back later
 	while (cin >> ch)
 		if (ch == c) return;
 }
 
+
+/**
+ * Dictionary ADT
+ * Variable struct maps values to its name. 
+ * For example, pi = 3.1415....
+ */
 struct Variable {
 	string name;
 	double value;
 	Variable(string n, double v) :name(n), value(v) { }
 };
 
+//vector of names. (needs to find where variables are getting pushed back to this vector.)
 vector<Variable> names;
 
+//get value using key. 
 double get_value(string s)
 {
 	for (int i = 0; i < names.size(); ++i)
@@ -140,6 +193,7 @@ double get_value(string s)
 	error("get: undefined name ", s);
 }
 
+//setting a new value to a key s. 
 void set_value(string s, double d)
 {
 	for (int i = 0; i <= names.size(); ++i)
@@ -150,6 +204,8 @@ void set_value(string s, double d)
 	error("set: undefined name ", s);
 }
 
+
+//checks if a key exists in the vector names. 
 bool is_declared(string s)
 {
 	for (int i = 0; i < names.size(); ++i)
