@@ -217,32 +217,62 @@ Token_stream ts;
 
 double expression();
 
+/*
+ * Primary:
+ * 		Number
+ * 		"(" Expression ")"
+ * 		"-" Primary
+ * 		"+" Primary
+ */
+
 double primary()
 {
 	Token t = ts.get();
 	switch (t.kind) {
+		
+	//return expression inside of bracket
 	case '(':
-	{	double d = expression();
-	t = ts.get();
-	if (t.kind != ')') error("'(' expected");
-	}
+		{	double d = expression();
+		t = ts.get();
+		if (t.kind != ')') error("'(' expected");
+		return d;
+		}
+
 	case '-':
-		return -primary();
+		return -primary(); //negate number
+
+	//actual number parsing happens in the Token_stream::get()
 	case number:
 		return t.value;
+	
 	case name:
 		return get_value(t.name);
+	
+	//error case. 
 	default:
 		error("primary expected");
 	}
 }
 
+/*
+ * Term:
+ * 		Primary
+ * 		Term "*" Primary
+ * 		Term "/" Primary
+ * 		Term "%" Primary
+ */
+
 double term()
 {
+	//gets the leftmost number through primary
 	double left = primary();
 	while (true) {
+
+		//get the next token
 		Token t = ts.get();
 		switch (t.kind) {
+
+			//in case of * and /, it gets another primary and performs the operation
 		case '*':
 			left *= primary();
 			break;
@@ -252,12 +282,20 @@ double term()
 		left /= d;
 		break;
 		}
+
+		//The function only returns when it hits a token that's not * or / in the default case
 		default:
 			ts.unget(t);
 			return left;
 		}
 	}
 }
+
+/* Expression:
+ * 		Term
+ * 		Expression "+" Term
+ * 		Expression "-" Term
+ */
 
 double expression()
 {
@@ -278,19 +316,30 @@ double expression()
 	}
 }
 
+/**
+ * Function that delcares a variable if it doesn't exist in the dictionary "names"
+ * push back to the dictionary
+ */
 double declaration()
 {
 	Token t = ts.get();
-	if (t.kind != 'a') error("name expected in declaration");
+	//if t.kind != 'a' -> 'a' is represented by const name
+	if (t.kind != name) error("name expected in declaration");
+
+	//if declared already, error
 	string name = t.name;
 	if (is_declared(name)) error(name, " declared twice");
+
+	//see if it is in format of let {variable} = {expression}
 	Token t2 = ts.get();
 	if (t2.kind != '=') error("= missing in declaration of ", name);
+
 	double d = expression();
 	names.push_back(Variable(name, d));
 	return d;
 }
 
+//triggers declaration if the input starts with let. If not, compute an expression
 double statement()
 {
 	Token t = ts.get();
@@ -303,6 +352,11 @@ double statement()
 	}
 }
 
+
+/**
+ * This function is designed to discard input until it finds a print token(;) after an error occurs. 
+ */
+
 void clean_up_mess()
 {
 	ts.ignore(print);
@@ -314,10 +368,14 @@ const string result = "= ";
 void calculate()
 {
 	while (true) try {
-		cout << prompt;
-		Token t = ts.get();
-		while (t.kind == print) t = ts.get();
-		if (t.kind == quit) return;
+		cout << prompt; //prints ">"
+		Token t = ts.get();	//gets next token from input
+
+		while (t.kind == print) t = ts.get(); //skip any semicolons
+
+		if (t.kind == quit) return; //if token is quit, exit the function
+
+		//put token back and evaluate expression / declaration
 		ts.unget(t);
 		cout << result << statement() << endl;
 	}
