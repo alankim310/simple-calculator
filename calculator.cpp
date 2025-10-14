@@ -227,12 +227,25 @@ double get_value(string s)
 //setting a new value to a key s. 
 void set_value(string s, double d)
 {
-	for (int i = 0; i < names.size(); ++i)
+	//declare variable pointer outside the loop
+	Variable* var = nullptr;
+
+	for (int i = 0; i < names.size(); ++i){
+	//non constant case
 		if (names[i].name == s) {
-			names[i].value = d;
-			return;
+			//point to the array
+			var = &names[i];
+			break;}
 		}
-	error("set: undefined name ", s);
+
+	//check if variable was found
+	if (!var) error("set: undefined name ", s);
+
+	if (var->constant) {
+		error("Cannot modify constant");
+	}
+	//set new value
+	var->value = d;
 }
 
 
