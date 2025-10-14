@@ -165,7 +165,7 @@ Token Token_stream::get()
 			if (s == "pow") return Token(pow_function);
 
 			//declaration of constant function
-			if (s == "constant") return Token(constant);
+			if (s == "const") return Token(constant);
 
 			return Token(name_token, s);
 		}
@@ -432,9 +432,8 @@ void declaration_error(Token& t) {
 	if (is_declared(var_name)) error(var_name, " declared twice");
 
 	//see if it is in format of let {variable} = {expression}
-	t = ts.get();
-	if (t.kind != '=') error("= missing in declaration of ", var_name);
-	ts.unget(t);
+	Token t2 = ts.get();
+	if (t2.kind != '=') error("= missing in declaration of ", var_name);
 }
 
 /**
@@ -444,24 +443,19 @@ void declaration_error(Token& t) {
 double declaration()
 {
 	Token t = ts.get();
-
 	bool constant_variable = constant_declaration(t);
-
-	//variable that is getting declared
-	Variable declaring_variable {};
 
 	//take the next token if a variable is constant
 	//format: let const {variable} {value}
 	if (constant_variable) {
 		t = ts.get();
 	}
-	string var_name = t.name;
 
 	declaration_error(t);
-
+	string var_name = t.name;
 	double d = expression();
 
-	Variable declaraing_variable(var_name, d, constant_variable);
+	Variable declaring_variable(var_name, d, constant_variable);
 
 	names.push_back(declaring_variable);
 	return d;
