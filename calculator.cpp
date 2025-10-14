@@ -78,7 +78,7 @@ const char let = 'L';
 const char quit = 'Q';
 const char print = ';';
 const char number = '8';
-const char name_identifier = 'a';
+const char name_token = 'a';
 
 //constant (immutable)
 const char constant = 'C';
@@ -156,7 +156,7 @@ Token Token_stream::get()
 			cin.unget();
 
 			if (s == "let") return Token(let);
-			if (s == "quit") return Token(name_identifier);
+			if (s == "quit") return Token(name_token);
 
 			//square root. input of sqrt will make square root token. 
 			if (s == "sqrt") return Token(square_root);
@@ -167,7 +167,7 @@ Token Token_stream::get()
 			//declaration of constant function
 			if (s == "constant") return Token(constant);
 
-			return Token(name_identifier, s);
+			return Token(name_token, s);
 		}
 		error("Bad token");
 	}
@@ -319,7 +319,7 @@ double primary()
 	case number:
 		return t.value;
 	
-	case name_identifier: {
+	case name_token: {
 		string var_name = t.name; // save the variable name
 		//look up the next token if it is =
 		t = ts.get();
@@ -425,7 +425,7 @@ bool constant_declaration(Token token) {
  */
 void declaration_error(Token& t) {
 	//if t.kind != 'a' -> 'a' is represented by const name
-	if (t.kind != name_identifier) error("name expected in declaration");
+	if (t.kind != name_token) error("name expected in declaration");
 
 	//if declared already, error
 	string var_name = t.name;
@@ -434,6 +434,7 @@ void declaration_error(Token& t) {
 	//see if it is in format of let {variable} = {expression}
 	t = ts.get();
 	if (t.kind != '=') error("= missing in declaration of ", var_name);
+	ts.unget(t);
 }
 
 /**
