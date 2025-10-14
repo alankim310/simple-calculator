@@ -78,7 +78,10 @@ const char let = 'L';
 const char quit = 'Q';
 const char print = ';';
 const char number = '8';
-const char name = 'a';
+const char name_identifier = 'a';
+
+//constant (immutable)
+const char constant = 'C';
 
 //square root identifier. 
 const char square_root = 'S';
@@ -153,7 +156,7 @@ Token Token_stream::get()
 			cin.unget();
 
 			if (s == "let") return Token(let);
-			if (s == "quit") return Token(name);
+			if (s == "quit") return Token(name_identifier);
 
 			//square root. input of sqrt will make square root token. 
 			if (s == "sqrt") return Token(square_root);
@@ -161,7 +164,10 @@ Token Token_stream::get()
 			//pow function
 			if (s == "pow") return Token(pow_function);
 
-			return Token(name, s);
+			//declaration of constant function
+			if (s == "constant") return Token(constant);
+
+			return Token(name_identifier, s);
 		}
 		error("Bad token");
 	}
@@ -199,7 +205,12 @@ void Token_stream::ignore(char c)
 struct Variable {
 	string name;
 	double value;
-	Variable(string n, double v) :name(n), value(v) { }
+	//true if the variable is constant
+	bool constant;
+
+	Variable(string n, double v) :name(n), value(v), constant(false) { }
+	Variable(string n, double v, bool c) :name(n), value(v), constant(c) {}
+	Variable() : name(""), value(0), constant(false) {}
 };
 
 //vector of names. (needs to find where variables are getting pushed back to this vector.)
@@ -308,7 +319,7 @@ double primary()
 	case number:
 		return t.value;
 	
-	case name: {
+	case name_identifier: {
 		string var_name = t.name; // save the variable name
 		//look up the next token if it is =
 		t = ts.get();
@@ -396,25 +407,62 @@ double expression()
 }
 
 /**
+ * Checks if a declaration of variable is a constant. --> immutable. 
+ * 
+ * True if a variable is constant
+ * False if a variable is not constant. 
+ */
+bool constant_declaration(Token token) {
+	if (token.kind == constant) return true;
+	return false;
+}
+
+/**
+ * shows errors if 
+ * 1) if a variable is declared already
+ * 2)if t.kind != 'a' -> 'a' is represented by const name
+ * 3)see if it is in format of let {variable} = {expression}
+ */
+void declaration_error(Token& t) {
+	//if t.kind != 'a' -> 'a' is represented by const name
+	if (t.kind != name_identifier) error("name expected in declaration");
+
+	//if declared already, error
+	string var_name = t.name;
+	if (is_declared(var_name)) error(var_name, " declared twice");
+
+	//see if it is in format of let {variable} = {expression}
+	t = ts.get();
+	if (t.kind != '=') error("= missing in declaration of ", var_name);
+}
+
+/**
  * Function that delcares a variable if it doesn't exist in the dictionary "names"
  * push back to the dictionary
  */
 double declaration()
 {
 	Token t = ts.get();
-	//if t.kind != 'a' -> 'a' is represented by const name
-	if (t.kind != name) error("name expected in declaration");
 
-	//if declared already, error
-	string name = t.name;
-	if (is_declared(name)) error(name, " declared twice");
+	bool constant_variable = constant_declaration(t);
 
-	//see if it is in format of let {variable} = {expression}
-	Token t2 = ts.get();
-	if (t2.kind != '=') error("= missing in declaration of ", name);
+	//variable that is getting declared
+	Variable declaring_variable {};
+
+	//take the next token if a variable is constant
+	//format: let const {variable} {value}
+	if (constant_variable) {
+		t = ts.get();
+	}
+	string var_name = t.name;
+
+	declaration_error(t);
 
 	double d = expression();
-	names.push_back(Variable(name, d));
+
+	Variable declaraing_variable(var_name, d, constant_variable);
+
+	names.push_back(declaring_variable);
 	return d;
 }
 
