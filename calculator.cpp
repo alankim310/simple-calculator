@@ -308,8 +308,23 @@ double primary()
 	case number:
 		return t.value;
 	
-	case name:
-		return get_value(t.name);
+	case name: {
+		string var_name = t.name; // save the variable name
+		//look up the next token if it is =
+		t = ts.get();
+		//assigning new value
+		if (t.kind == '=') {
+			//get value after =
+			double d = expression();
+			set_value(var_name, d);
+			return d;
+		}
+		//printing out variable value
+		else {
+			ts.unget(t);
+			return get_value(var_name);
+		}
+	}
 	
 	//error case. 
 	default:
