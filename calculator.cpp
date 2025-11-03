@@ -112,6 +112,9 @@ Token Token_stream::get()
 	case ';':
 	case '=':
 	case ',':
+	case '!':
+	case '{':
+	case '}':
 		return Token(ch);
 
         //case of number:
@@ -157,7 +160,7 @@ Token Token_stream::get()
 			cin.unget();
 
 			if (s == "let") return Token(let);
-			if (s == "quit") return Token(name_token);
+			if (s == "quit") return Token(quit);
 
 			//square root. input of sqrt will make square root token. 
 			if (s == "sqrt") return Token(square_root);
@@ -274,7 +277,17 @@ double primary()
 {
 	Token t = ts.get();
 	switch (t.kind) {
-	
+
+	case '{':  //handle '{' expression '}'
+		{
+		double d = expression();
+		t = ts.get();
+		if (t.kind != '}') error("'}' expected");
+			return d;
+		break;
+		}
+
+
 	//case for pow function
 	case pow_function: {
 		t = ts.get();
@@ -330,8 +343,29 @@ double primary()
 		return abs(primary()); //always positive number;
 
 	//actual number parsing happens in the Token_stream::get()
-	case number:
-		return t.value;
+	case number: {
+	    Token next = ts.get();//peak at next token
+
+        if (next.kind == '!') { //case for factorial
+            int n = t.value; //n for counter
+            int factorial = 1; //store the value for factorial
+            
+            if (n == 0) return 1; // 0! evaluate to 1
+            else {
+                while (n > 1) {
+                    factorial = n * factorial;
+                    n--; //each iteration decrement the counter by 1. 
+                }
+            }
+            return factorial;
+        }
+        //non factorial
+        else {
+            ts.unget(next); //put back the token if it's not factorial. 
+            return t.value;  // return the number's value
+        }
+		break;
+	}
 	
 	case name_token: {
 		string var_name = t.name; // save the variable name
@@ -525,15 +559,27 @@ int main()
 
 try {
     //starting message
-    cout << "Welcome to our simple calculator" << endl;
-    cout << "Please enter expressions using floating-point numbers." << endl
-    <<"***********************************************" << endl << endl << endl;
+    cout << "Welcome to our simple calculator" << endl << endl;
 
-    cout << "Here is how to use the calculator: " << endl << endl
-    << "We currently allow four operations including +, -, *, /." << endl
-    << "It follows the conventional computational order, and put expression inside brackets to prioritize the computation. " << endl
-    <<"() for inner bracket and {} for outside bracket." << endl
-    << "x to exit this calculator, and = to print the computation! " << endl << endl;
+    cout << "Quick overview and available features:" << endl;
+    cout << " - Basic arithmetic: +  -  *  /" << endl;
+    cout << " - Grouping: use ( ) for inner grouping and { } for outer grouping" << endl;
+    cout << " - Unary operators: +x (positive), -x (negation)" << endl;
+    cout << " - Factorial: append ! to an integer literal (e.g. 5!)" << endl;
+    cout << " - Functions: sqrt(x)  and  pow(x,i)  (i treated as integer)" << endl;
+    cout << " - Variables: declare with 'let'  e.g.  let x = 3.5" << endl;
+    cout << " - Constants: declare immutable with 'let const'  e.g.  let const pi = 3.14" << endl;
+    cout << " - Special names: predefined variable k = 1000" << endl;
+    cout << " - Input/Output:" << endl;
+    cout << "     ;  -> print/evaluate the expression" << endl;
+    cout << "     q  or  quit  -> exit the calculator" << endl << endl;
+
+    cout << "Examples:" << endl;
+    cout << "  > (2 + 3) * 4 ;        => 20" << endl;
+    cout << "  > 5! ;                 => 120" << endl;
+    cout << "  > pow(2,3) ;           => 8" << endl;
+    cout << "  > let a = 2 ; a * 3 ;  => 6" << endl << endl;
+
 	
 	//predefined name k meaning 1000
 	Variable k("k", 1000);
