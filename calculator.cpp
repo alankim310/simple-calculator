@@ -42,6 +42,7 @@
  */
 
  //q does not work to quit now. 
+ 
 struct Token {
     //attributes: kind, value, name
 	char kind;
@@ -523,7 +524,17 @@ void calculate()
 int main()
 
 try {
+    //starting message
+    cout << "Welcome to our simple calculator" << endl;
+    cout << "Please enter expressions using floating-point numbers." << endl
+    <<"***********************************************" << endl << endl << endl;
 
+    cout << "Here is how to use the calculator: " << endl << endl
+    << "We currently allow four operations including +, -, *, /." << endl
+    << "It follows the conventional computational order, and put expression inside brackets to prioritize the computation. " << endl
+    <<"() for inner bracket and {} for outside bracket." << endl
+    << "x to exit this calculator, and = to print the computation! " << endl << endl;
+	
 	//predefined name k meaning 1000
 	Variable k("k", 1000);
 	names.push_back(k);
